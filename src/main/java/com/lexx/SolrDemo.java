@@ -1,6 +1,10 @@
 package com.lexx;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+import java.util.ResourceBundle;
+
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrClient;
@@ -17,10 +21,11 @@ import static org.junit.Assert.assertEquals;
  */
 public class SolrDemo {
     public static void main(String[] args) throws IOException, SolrServerException {
-        System.out.println(SolrDemo.class.getName());
+        ClassLoader classLoader = SolrDemo.class.getClassLoader();
+        System.out.println(classLoader.getClass().getName());
 
-        String urlString = "http://localhost:8983/solr/Document";
-        HttpSolrClient solr = createSolrClient(urlString);
+        String solrUrl = readSolrUrlFromProperties(classLoader);
+        HttpSolrClient solr = createSolrClient(solrUrl);
 
         Product product1 = new Product("123456","Kenmore Dishwasher","599.99");
         solrAdd(solr, product1);
@@ -36,6 +41,13 @@ public class SolrDemo {
         deleteById(solr, product1);
 
         deleteByQuery(solr, product1);
+    }
+
+    private static String readSolrUrlFromProperties(ClassLoader classLoader) throws IOException {
+        Properties properties = new Properties();
+        properties.load(classLoader.getResourceAsStream("solr.properties"));
+        String solrUrl = properties.getProperty("solr_url");
+        return solrUrl;
     }
 
     private static HttpSolrClient createSolrClient(String urlString) {
